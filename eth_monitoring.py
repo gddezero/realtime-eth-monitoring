@@ -88,13 +88,15 @@ def run(subscription, output_topic, sql, decimal, pipeline_args):
         result = (
             p
             | "read from pubsub" >> beam.io.ReadFromPubSub(subscription=subscription)
-            | 'transform to json' >> beam.Map(json.loads)
+            | 'convert to json' >> beam.Map(json.loads)
             | 'filter empty elements' >> beam.Filter(lambda x: x.get("hash"))
             | 'convert amount to readable' >> beam.Map(amount_trans, decimal=decimal)
             | 'flatten address tags' >> beam.Map(flatten)
             | 'bind schema' >> beam.Map(lambda x: Transaction(**x)).with_output_types(Transaction)
             | 'run customized sql' >> SqlTransform(sql)
-            | 'transform to string' >> beam.Map(lambda x: json.dumps(x._asdict()).encode())
+            | 'convert result to json' >> beam.Map(lambda x: x._asdict())
+            | 'convert to string' >> beam.Map(json.dumps)
+            | 'convert to UTF-8 encoding' >> beam.Map(lambda x: x.encode("utf-8"))
             | 'write to pubsub' >> beam.io.WriteToPubSub(topic=output_topic)
         )
 
