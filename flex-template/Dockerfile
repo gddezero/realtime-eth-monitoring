@@ -21,7 +21,7 @@ COPY . /template
 
 # We could get rid of installing libffi-dev and git, or we could leave them.
 RUN apt-get update \
-    && apt-get install -y libffi-dev git \
+    && apt-get install -y libffi-dev git default-jdk \
     && rm -rf /var/lib/apt/lists/* \
     # Upgrade pip and install the requirements.
     && pip install --no-cache-dir --upgrade pip \
